@@ -1,16 +1,18 @@
-import React  from 'react'
-import {Text, StyleSheet} from 'react-native'
+import React from 'react'
+import {Provider} from 'react-redux'
+import {store} from './src/store/configureStore'
+import AppNavigator from './src/navigation/AppNavigator'
+
+import {YellowBox} from 'react-native'
+YellowBox.ignoreWarnings(['Warning: ...'])
+console.disableYellowBox = true
 
 const App = () => {
   return (
-    <>
-      <Text></Text>
-    </>
+    <Provider store={store}>
+      <AppNavigator />
+    </Provider>
   )
 }
-
-const styles = StyleSheet.create({
-
-})
 
 export default App
