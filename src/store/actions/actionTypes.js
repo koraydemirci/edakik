@@ -1,0 +1,5 @@
+export const SET_USERS = 'SET_USERS'
+export const RESET_USERS = 'RESET_USERS'
+export const SET_PROFILE = 'SET_PROFILE'
+export const SET_FOLLOWERS = 'SET_FOLLOWERS'
+export const SET_FOLLOWINGS = 'SET_FOLLOWINGS'

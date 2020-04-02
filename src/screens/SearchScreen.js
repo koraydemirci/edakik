@@ -8,6 +8,8 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
+  ActivityIndicator,
+  Image,
 } from 'react-native'
 import {useSelector, useDispatch} from 'react-redux'
 import {fetchGithubUsers, resetGithubUsers} from '../store/actions/usersList'
@@ -15,15 +17,24 @@ import {useDebouncedEffect} from '../custom-hooks/useDebounce'
 
 const SearchScreen = ({navigation}) => {
   const dispatch = useDispatch()
-  const {usersList} = useSelector(state => state)
-  console.log("SearchScreen -> usersList", usersList)
+  const {usersList} = useSelector(state => state || [])
 
-  const [searchText, setSearchText] = useState('')
+  const [searchText, setSearchText] = useState('koraydemirc')
+  const [loading, setLoading] = useState(false)
 
   useDebouncedEffect(
     () => {
       if (searchText) {
-        dispatch(fetchGithubUsers(searchText))
+        const fetchUsers = async () => {
+          setLoading(true)
+          try {
+            await dispatch(fetchGithubUsers(searchText))
+          } catch (error) {
+            console.log(error)
+          }
+          setLoading(false)
+        }
+        fetchUsers()
       } else {
         dispatch(resetGithubUsers())
       }
@@ -42,14 +53,25 @@ const SearchScreen = ({navigation}) => {
       style={{
         height: 50,
         width: '100%',
+        flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'space-between',
         borderBottomColor: '#ccc',
         borderBottomWidth: 0.5,
       }}>
-      <Text>{item.login}</Text>
+      <Image
+        style={styles.tinyLogo}
+        source={{
+          uri: item.avatar_url,
+        }}
+      />
+      <View styles={{alignItems: 'center', alignItems: 'center', backgroundColor: 'red'}}>
+        <Text style={{textAlign: 'center'}}>{item.login}</Text>
+      </View>
     </TouchableOpacity>
   )
+
+  const getKey = item => item.id.toString()
 
   return (
     <SafeAreaView style={styles.container}>
@@ -60,17 +82,19 @@ const SearchScreen = ({navigation}) => {
           style={styles.textInput}
           placeholder='Search'
         />
-        {/* <Text
-          style={[styles.searchBarText, {color: themeSubTextColor}]}
-          onPress={clearSearchbar}>
-          {searchbarValue.length ? i18n.t('clear') : ''}
-        </Text> */}
+        <Text style={styles.searchBarText} onPress={() => setSearchText('')}>
+          {searchText.length ? 'Clear' : ''}
+        </Text>
       </View>
-      {usersList && usersList.length && (
+      {loading ? (
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+          <ActivityIndicator size='large' color='#0000ff' />
+        </View>
+      ) : (
         <FlatList
           data={usersList}
           renderItem={renderItem}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={getKey}
         />
       )}
     </SafeAreaView>
@@ -128,6 +152,10 @@ const styles = StyleSheet.create({
     width: '20%',
     textAlign: 'right',
     fontSize: 16,
+  },
+  tinyLogo: {
+    width: 50,
+    height: 50,
   },
 })
 

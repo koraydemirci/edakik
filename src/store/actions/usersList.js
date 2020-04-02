@@ -1,29 +1,23 @@
+import axios from 'axios'
+import _ from 'lodash'
+import {SET_USERS} from './actionTypes'
+
 export const fetchGithubUsers = searchText => {
   return async (dispatch, getState) => {
     try {
-      const response = await fetch(
-        `https://api.github.com/search/users?q=${searchText}`,
-      )
-      // if (!response.ok) {
-      //   throw new Error("Something went wrong!");
-      // }
+      const searchUrl = `https://api.github.com/search/users?q=${searchText}`
+      const response = await axios.get(searchUrl)
+      if (response.status !== 200) {
+        throw new Error("Can't get users from server!")
+      }
 
-      const resData = await response.json()
-      const users = resData.items
+      const users = _.get(response, 'data.items')
 
-      // const loadedOrders = [];
+      if (!users) {
+        throw new Error('No users!')
+      }
 
-      // for (const key in resData) {
-      //   loadedOrders.push(
-      //     new Order(
-      //       key,
-      //       resData[key].cartItems,
-      //       resData[key].totalAmount,
-      //       new Date(resData[key].date)
-      //     )
-      //   );
-      // }
-      dispatch({type: 'FETCH_USERS', users})
+      dispatch({type: SET_USERS, users})
     } catch (err) {
       throw err
     }
