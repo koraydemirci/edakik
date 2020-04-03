@@ -9,9 +9,23 @@ const Stack = createStackNavigator()
 const AppNavigator = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name='Search' component={SearchScreen} />
-        <Stack.Screen name='Profile' component={ProfileScreen} />
+      <Stack.Navigator
+        screenOptions={{
+          headerBackTitle: 'Geri',
+          headerTintColor: "#fff",
+          headerBackTitleStyle: {color: '#fff'},
+          headerStyle: {backgroundColor: '#3D8EB9'},
+        }}>
+        <Stack.Screen
+          name='Search'
+          component={SearchScreen}
+          options={{title: 'Github Kullanıcıları'}}
+        />
+        <Stack.Screen
+          name='Profile'
+          component={ProfileScreen}
+          options={{title: 'Kullanıcı Profili'}}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   )

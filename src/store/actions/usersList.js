@@ -1,6 +1,6 @@
 import axios from 'axios'
 import _ from 'lodash'
-import {SET_USERS} from './actionTypes'
+import {SET_USERS, RESET_USERS} from './actionTypes'
 
 export const fetchGithubUsers = searchText => {
   return async (dispatch, getState) => {
@@ -16,7 +16,6 @@ export const fetchGithubUsers = searchText => {
       if (!users) {
         throw new Error('No users!')
       }
-
       dispatch({type: SET_USERS, users})
     } catch (err) {
       throw err
@@ -25,5 +24,5 @@ export const fetchGithubUsers = searchText => {
 }
 
 export const resetGithubUsers = () => ({
-  type: 'RESET_USERS',
+  type: RESET_USERS,
 })

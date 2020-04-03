@@ -1,36 +1,37 @@
 import React, {useState} from 'react'
-import {
-  StyleSheet,
-  TextInput,
-  Platform,
-  View,
-  SafeAreaView,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  Image,
-} from 'react-native'
+import {FlatList, ActivityIndicator} from 'react-native'
 import {useSelector, useDispatch} from 'react-redux'
 import {fetchGithubUsers, resetGithubUsers} from '../store/actions/usersList'
 import {useDebouncedEffect} from '../custom-hooks/useDebounce'
+import Searchbar from '../components/searchbar'
+import {
+  SafeCenteredView,
+  Text,
+  FlexView,
+  View
+} from '../components/styledComponents'
+import UserListItem from '../components/search-screen/UserListItem'
+import _ from 'lodash'
 
 const SearchScreen = ({navigation}) => {
   const dispatch = useDispatch()
-  const {usersList} = useSelector(state => state || [])
+  const {usersList} = useSelector(state => state)
 
-  const [searchText, setSearchText] = useState('koraydemirc')
+  const [searchText, setSearchText] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(false)
 
   useDebouncedEffect(
     () => {
       if (searchText) {
         const fetchUsers = async () => {
           setLoading(true)
+          setError(false)
           try {
             await dispatch(fetchGithubUsers(searchText))
           } catch (error) {
             console.log(error)
+            setError(true)
           }
           setLoading(false)
         }
@@ -39,7 +40,7 @@ const SearchScreen = ({navigation}) => {
         dispatch(resetGithubUsers())
       }
     },
-    200,
+    500,
     [searchText],
   )
 
@@ -47,116 +48,57 @@ const SearchScreen = ({navigation}) => {
     navigation.navigate('Profile', {userName})
   }
 
-  const renderItem = ({item}) => (
-    <TouchableOpacity
-      onPress={() => handleDetailView(item.login)}
-      style={{
-        height: 50,
-        width: '100%',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderBottomColor: '#ccc',
-        borderBottomWidth: 0.5,
-      }}>
-      <Image
-        style={styles.tinyLogo}
-        source={{
-          uri: item.avatar_url,
-        }}
-      />
-      <View styles={{alignItems: 'center', alignItems: 'center', backgroundColor: 'red'}}>
-        <Text style={{textAlign: 'center'}}>{item.login}</Text>
-      </View>
-    </TouchableOpacity>
-  )
+  let message, children
+  if (error) {
+    message =
+      'Arama sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.'
+  } else if (_.get(usersList, 'length') === 0) {
+    message = 'Aradığınız isimde Github kullanıcısı bulunmuyor.'
+  } else if (!usersList && !loading) {
+    message =
+      'Bulmak istediğiniz Github kullanıcısı için arama çubuğunu kullanınız!'
+  }
 
-  const getKey = item => item.id.toString()
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.searchbarContainer}>
-        <TextInput
-          onChangeText={text => setSearchText(text)}
-          value={searchText}
-          style={styles.textInput}
-          placeholder='Search'
-        />
-        <Text style={styles.searchBarText} onPress={() => setSearchText('')}>
-          {searchText.length ? 'Clear' : ''}
-        </Text>
+  if (message) {
+    children = (
+      <View>
+        <Text textAlign='center' fontSize='18px'>{message}</Text>
       </View>
-      {loading ? (
-        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          <ActivityIndicator size='large' color='#0000ff' />
-        </View>
-      ) : (
+    )
+  } else if (loading) {
+    children = (
+      <View>
+        <ActivityIndicator size='large' color='#3D8EB9' />
+      </View>
+    )
+  } else {
+    const renderItem = ({item}) => (
+      <UserListItem item={item} handleDetailView={handleDetailView} />
+    )
+    const getKey = item => item.id.toString()
+  
+    children = (
+      <FlexView>
         <FlatList
+          style={{padding: 10}}
           data={usersList}
           renderItem={renderItem}
           keyExtractor={getKey}
         />
-      )}
-    </SafeAreaView>
+      </FlexView>
+    )
+  }
+
+  return (
+    <SafeCenteredView>
+      <Searchbar
+        handleChangeText={searchText => setSearchText(searchText)}
+        searchText={searchText}
+      />
+      {children}
+    </SafeCenteredView>
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  searchbarContainer: {
-    ...Platform.select({
-      ios: {
-        height: 35,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 50,
-        margin: 10,
-        marginBottom: 6,
-        flexDirection: 'row',
-        backgroundColor: '#eee',
-        paddingHorizontal: 12,
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      },
-      android: {
-        height: 30,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
-        marginHorizontal: 10,
-        marginTop: 10,
-        marginBottom: 6,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-end',
-      },
-    }),
-  },
-  textInput: {
-    ...Platform.select({
-      ios: {
-        height: '100%',
-        width: '80%',
-        fontSize: 16,
-      },
-      android: {
-        height: 30,
-        width: '80%',
-        fontSize: 16,
-        paddingBottom: 0,
-      },
-    }),
-  },
-  searchBarText: {
-    width: '20%',
-    textAlign: 'right',
-    fontSize: 16,
-  },
-  tinyLogo: {
-    width: 50,
-    height: 50,
-  },
-})
-
 export default SearchScreen
+

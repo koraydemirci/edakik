@@ -1,6 +1,6 @@
 import {SET_USERS, RESET_USERS} from '../actions/actionTypes'
 
-const initialState = []
+const initialState = null
 
 export default (state = initialState, action) => {
   switch (action.type) {

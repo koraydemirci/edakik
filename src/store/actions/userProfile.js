@@ -64,7 +64,6 @@ export const fetchUserFollowings = userName => {
     try {
       const userFollowingsUrl = `https://api.github.com/users/${userName}/following`
       const userFollowingsResponse = await axios.get(userFollowingsUrl)
-      console.log("userFollowingsResponse", userFollowingsResponse)
       if (userFollowingsResponse.status !== 200) {
         throw new Error("Can't get user followings from server!")
       }
